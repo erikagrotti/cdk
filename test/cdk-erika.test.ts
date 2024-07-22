@@ -1,17 +1,6 @@
-// import * as cdk from 'aws-cdk-lib';
-// import { Template } from 'aws-cdk-lib/assertions';
-// import * as CdkErika from '../lib/cdk-erika-stack';
+#!/usr/bin/env node
+import * as cdk from 'aws-cdk-lib';
+import { CdkErikaStack } from '../lib/cdk-erika-stack';
 
-// example test. To run these tests, uncomment this file along with the
-// example resource in lib/cdk-erika-stack.ts
-test('SQS Queue Created', () => {
-//   const app = new cdk.App();
-//     // WHEN
-//   const stack = new CdkErika.CdkErikaStack(app, 'MyTestStack');
-//     // THEN
-//   const template = Template.fromStack(stack);
-
-//   template.hasResourceProperties('AWS::SQS::Queue', {
-//     VisibilityTimeout: 300
-//   });
-});
+const app = new cdk.App();
+new CdkErikaStack(app, 'cdk_erika');
