@@ -1,8 +1,8 @@
 {
-  "name": "cdk-erika",
+  "name": "cdk-custom",
   "version": "0.1.0",
   "bin": {
-    "cdk-erika": "bin/cdk-erika.js"
+    "cdk-custom": "bin/cdk-custom.js"
   },
   "scripts": {
     "build": "tsc",
