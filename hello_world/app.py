@@ -4,13 +4,11 @@ import boto3
 import logging
 from botocore.exceptions import ClientError
 
-# Configuração básica do logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Inicialização do cliente DynamoDB
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('tab_erika_cdk')  # Substitua pelo nome da sua tabela
+table = dynamodb.Table('tab_custom_cdk')  
 
 def get_user_id_from_event(event):
     logger.info("Evento recebido na função get_user_id_from_event: %s", event)
@@ -63,11 +61,11 @@ def lambda_handler(event, context):
                 raise ValueError("O corpo da requisição está ausente")
 
             requestJSON = json.loads(event['body'])
-            list_id = str(uuid.uuid4())  # ID único para a nova lista
-            list_sk = f"LIST#{list_id}"  # SK da lista
+            list_id = str(uuid.uuid4())  
+            list_sk = f"LIST#{list_id}"  
 
             try:
-                # Adicionando a lista como item pai
+               
                 table.put_item(Item={
                     'PK': f"USER#{user_id}",
                     'SK': f"{list_sk}#TASK#T000",
@@ -77,10 +75,10 @@ def lambda_handler(event, context):
                     'listID': list_id
                 })
 
-                # Adicionando as tarefas como itens filhos
+                
                 tasks = requestJSON.get('tasks', [])
                 for index, task in enumerate(tasks, start=1):
-                    task_id = f'T{index:03}'  # ID sequencial para cada tarefa
+                    task_id = f'T{index:03}'
                     table.put_item(Item={
                         'PK': f"USER#{user_id}",
                         'SK': f"{list_sk}#TASK#{task_id}",
@@ -90,7 +88,7 @@ def lambda_handler(event, context):
                     })
 
                 body = {'message': f'Lista criada com sucesso com listID {list_id}'}
-                statusCode = 201  # Código de status HTTP para criação bem-sucedida
+                statusCode = 201 
 
             except Exception as e:
                 statusCode = 500
@@ -125,11 +123,11 @@ def lambda_handler(event, context):
             }
 
         elif method == "GET" and path.startswith("/items/"):
-            list_id = path.split("/")[2]  # Extrai o listID da URL
+            list_id = path.split("/")[2]  
             list_sk = f"LIST#{list_id}"
             
             try:
-                # Consulta a lista específica e suas tarefas
+               
                 response = table.query(
                     KeyConditionExpression=boto3.dynamodb.conditions.Key('PK').eq(f"USER#{user_id}") &
                                          boto3.dynamodb.conditions.Key('SK').begins_with(list_sk)
@@ -150,7 +148,7 @@ def lambda_handler(event, context):
             }
 
         elif method == "PATCH" and path.startswith("/items/") and path.endswith("/status"):
-            list_id = path.split("/")[2]  # Extrai o listID da URL
+            list_id = path.split("/")[2] 
             task_id = path.split("/")[3]
             requestJSON = json.loads(event['body'])
 
@@ -187,12 +185,12 @@ def lambda_handler(event, context):
             }
 
         elif method == "PATCH" and path.startswith("/items/"):
-            list_id = path.split("/")[2]  # Extrai o listID da URL
+            list_id = path.split("/")[2]  
             requestJSON = json.loads(event['body'])
             list_sk = f"LIST#{list_id}"
 
             try:
-                # Atualizar o título da lista, se fornecido
+                
                 if 'title' in requestJSON:
                     table.update_item(
                         Key={
@@ -204,7 +202,7 @@ def lambda_handler(event, context):
                         ExpressionAttributeValues={':t': requestJSON['title']}
                     )
 
-                # Atualizar ou criar tarefas
+                
                 for task in requestJSON.get('tasks', []):
                     task_id = task['taskID']
                     table.put_item(Item={
@@ -231,7 +229,7 @@ def lambda_handler(event, context):
 
         elif method == "DELETE" and path.startswith("/items/"):
             parts = path.split("/")
-            if len(parts) == 4:  # Rota para deletar uma tarefa específica
+            if len(parts) == 4:  
                 list_id = parts[2]
                 task_id = parts[3]
                 task_sk = f"LIST#{list_id}#TASK#{task_id}"
@@ -245,19 +243,19 @@ def lambda_handler(event, context):
                     )
 
                     body = {'message': f'Tarefa {task_id} da lista {list_id} deletada com sucesso'}
-                    statusCode = 200  # Código de status HTTP para exclusão bem-sucedida
+                    statusCode = 200  
 
                 except Exception as e:
                     statusCode = 500
                     body = {'error': str(e)}
                     logger.exception(f"Erro ao deletar tarefa {task_id} da lista {list_id}:")
 
-            elif len(parts) == 3:  # Rota para deletar uma lista inteira
+            elif len(parts) == 3:  
                 list_id = parts[2]
                 list_sk = f"LIST#{list_id}"
 
                 try:
-                    # Primeiro, deletar todos os itens da lista
+                   
                     response = table.query(
                         KeyConditionExpression=boto3.dynamodb.conditions.Key('PK').eq(f"USER#{user_id}") &
                                              boto3.dynamodb.conditions.Key('SK').begins_with(list_sk)
@@ -273,7 +271,7 @@ def lambda_handler(event, context):
                             )
 
                     body = {'message': f'Lista {list_id} deletada com sucesso'}
-                    statusCode = 200  # Código de status HTTP para exclusão bem-sucedida
+                    statusCode = 200  
 
                 except Exception as e:
                     statusCode = 500
